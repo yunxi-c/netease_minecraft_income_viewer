@@ -1,0 +1,2 @@
+# netease_minecraft_income_viewer
+非常暴力的爬取开发者平台计算自己账户准确收益
