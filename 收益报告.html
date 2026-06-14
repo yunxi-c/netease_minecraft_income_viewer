@@ -1,0 +1,876 @@
+﻿﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>收益报告</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg-soft: #0d1728;
+      --panel: rgba(13, 22, 38, 0.88);
+      --panel-strong: rgba(17, 28, 47, 0.96);
+      --panel-border: rgba(141, 172, 255, 0.12);
+      --ink: #edf4ff;
+      --muted: #8da3c7;
+      --line: rgba(141, 172, 255, 0.12);
+      --accent: #59a7ff;
+      --accent-2: #7dffcc;
+      --warm: #ff9f67;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.36);
+      --glow: 0 0 0 1px rgba(89, 167, 255, 0.10), 0 18px 40px rgba(0, 0, 0, 0.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(89, 167, 255, 0.22), transparent 24%),
+        radial-gradient(circle at top right, rgba(125, 255, 204, 0.16), transparent 18%),
+        radial-gradient(circle at bottom center, rgba(255, 159, 103, 0.10), transparent 20%),
+        linear-gradient(180deg, #07101d 0%, #091321 48%, #050b15 100%);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .shell { max-width: 1560px; margin: 0 auto; padding: 40px 24px 56px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 20px;
+      margin-bottom: 28px;
+      align-items: stretch;
+    }
+    .hero-card, .report-section, .detail-panel {
+      background: linear-gradient(180deg, rgba(15, 24, 42, 0.94), rgba(10, 18, 31, 0.92));
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+    .hero-card {
+      border-radius: 30px;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(89, 167, 255, 0.10), transparent 40%, rgba(125, 255, 204, 0.08));
+      pointer-events: none;
+    }
+    .hero-card h1 {
+      margin: 0 0 12px;
+      font-size: 46px;
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+      position: relative;
+    }
+    .hero-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+      max-width: 760px;
+      position: relative;
+    }
+    .hero-meta { display: grid; gap: 18px; align-content: center; }
+    .meta-pill {
+      display: inline-flex;
+      width: fit-content;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(89, 167, 255, 0.12);
+      color: #cfe3ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      position: relative;
+    }
+    .report-section {
+      border-radius: 30px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: var(--glow);
+    }
+    .section-head, .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+    }
+    .section-head h2, .panel-head h3 { margin: 0; }
+    .section-head h2 {
+      font-size: 32px;
+      letter-spacing: -0.04em;
+    }
+    .panel-head h3 { font-size: 20px; }
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--warm);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .meta-chip {
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .report-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      padding: 18px 20px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(15, 24, 42, 0.94), rgba(10, 18, 31, 0.92));
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--glow);
+    }
+    .toolbar-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .report-select {
+      min-width: 180px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(5, 12, 23, 0.76);
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+    .report-select:focus { border-color: rgba(89, 167, 255, 0.62); }
+    .report-button {
+      padding: 10px 14px;
+      border: 1px solid rgba(89, 167, 255, 0.36);
+      border-radius: 14px;
+      background: rgba(89, 167, 255, 0.14);
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .report-button:hover { border-color: rgba(89, 167, 255, 0.72); }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin: 22px 0;
+    }
+    .stat-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 24px;
+      padding: 18px;
+      min-height: 114px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .stat-card span { color: var(--muted); font-size: 13px; }
+    .stat-card strong {
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      color: #f7fbff;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.025));
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 24px;
+      padding: 20px;
+    }
+    .panel-head { margin-bottom: 16px; }
+    .panel-head span { color: var(--muted); font-size: 13px; }
+    .chart-svg { width: 100%; height: auto; display: block; }
+    .chart-bg { fill: rgba(255,255,255,0.025); stroke: rgba(255,255,255,0.06); }
+    .guide { stroke: rgba(141, 172, 255, 0.12); stroke-dasharray: 5 7; }
+    .axis-line { stroke: rgba(141, 172, 255, 0.20); }
+    .area-line { fill: rgba(89,167,255,0.10); stroke: none; }
+    .data-line { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+    .point {
+      fill: #0d1728;
+      stroke: #d9ebff;
+      stroke-width: 2.5;
+      cursor: pointer;
+      transition: stroke 0.12s ease, fill 0.12s ease;
+    }
+    /*noinspection CssUnusedSymbol*/
+    .point.is-active {
+      fill: var(--accent);
+      stroke: #ffffff;
+    }
+    .axis-label { fill: #7f97bf; font-size: 12px; }
+    .x-label { text-anchor: middle; }
+    .table-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
+    .table-wrap {
+      overflow: auto;
+      max-height: 700px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(5, 12, 23, 0.42);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 540px; }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: rgba(10, 18, 31, 0.96);
+      z-index: 1;
+      color: #cfe1ff;
+    }
+    td { color: #e8f1ff; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .table-link {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      color: #8ec5ff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    .table-link:hover { color: #d7ecff; text-decoration: underline; }
+    .detail-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      bottom: 20px;
+      width: min(720px, calc(100vw - 40px));
+      border-radius: 28px;
+      padding: 22px;
+      z-index: 20;
+      overflow: auto;
+      transform: translateX(110%);
+      transition: transform 0.24s ease;
+      background: linear-gradient(180deg, rgba(12, 20, 36, 0.98), rgba(8, 14, 25, 0.98));
+      border: 1px solid rgba(141, 172, 255, 0.14);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.42);
+    }
+    /*noinspection CssUnusedSymbol*/
+    .detail-panel.open { transform: translateX(0); }
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 12, 0.56);
+      z-index: 19;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      backdrop-filter: blur(5px);
+    }
+    /*noinspection CssUnusedSymbol*/
+    .panel-overlay.open { opacity: 1; pointer-events: auto; }
+    .close-btn {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05);
+      color: #eaf3ff;
+      border-radius: 999px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .detail-chart { margin: 16px 0 18px; }
+    .empty-state {
+      padding: 28px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      text-align: center;
+    }
+    .chart-tooltip {
+      position: fixed;
+      z-index: 40;
+      pointer-events: none;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(6, 12, 22, 0.96);
+      border: 1px solid rgba(141, 172, 255, 0.18);
+      color: #ecf5ff;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      min-width: 140px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+    }
+    /*noinspection CssUnusedSymbol*/
+    .chart-tooltip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .chart-tooltip .tip-label {
+      display: block;
+      color: #8ec5ff;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .chart-tooltip .tip-value {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    @media (max-width: 1100px) {
+      .hero, .table-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .shell { padding: 20px 14px 32px; }
+      .hero-card h1 { font-size: 34px; }
+      .report-toolbar { align-items: stretch; flex-direction: column; }
+      .toolbar-controls { align-items: stretch; flex-direction: column; }
+      .report-select { width: 100%; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .report-section, .panel, .hero-card, .detail-panel { border-radius: 22px; }
+      .detail-panel {
+        top: 10px;
+        right: 10px;
+        bottom: 10px;
+        width: calc(100vw - 20px);
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <article class="hero-card">
+        <div class="meta-pill">Dark Interactive Report</div>
+        <h1>收益统计可视化报表</h1>
+        <p>总览保持简洁，交互信息按需出现。将鼠标停在图表点位上可以直接查看对应数值，点击日期或组件则在右侧面板动态展开详细内容。</p>
+      </article>
+      <aside class="hero-card hero-meta">
+        <div>
+          <div class="eyebrow">账号</div>
+          <strong>3453703057@qq.com</strong>
+        </div>
+        <div>
+          <div class="eyebrow">生成时间</div>
+          <strong>2026-06-14 17:38:49</strong>
+        </div>
+      </aside>
+    </section>
+    <section class="report-toolbar">
+      <div>
+        <div class="eyebrow">账户 / 月份</div>
+        <strong id="activeMonthLabel">加载中</strong>
+      </div>
+      <div class="toolbar-controls">
+        <button id="chooseDataDir" type="button" class="report-button">选择 report_data 文件夹</button>
+        <input id="dataDirInput" type="file" multiple hidden>
+        <select id="accountSelect" class="report-select" aria-label="切换账户"></select>
+        <select id="monthSelect" class="report-select" aria-label="切换月份"></select>
+      </div>
+    </section>
+    <div id="reportRoot"></div>
+  </main>
+
+  <div id="panelOverlay" class="panel-overlay"></div>
+  <aside id="detailPanel" class="detail-panel" aria-hidden="true">
+    <div class="panel-head">
+      <div>
+        <h3 id="detailTitle">详情</h3>
+        <span id="detailSubtitle">点击左侧表格查看</span>
+      </div>
+      <button id="closePanel" type="button" class="close-btn">×</button>
+    </div>
+    <div id="detailChart" class="detail-chart"></div>
+    <div id="detailTableWrap" class="table-wrap"></div>
+  </aside>
+
+  <div id="chartTooltip" class="chart-tooltip" aria-hidden="true">
+    <span id="chartTooltipLabel" class="tip-label"></span>
+    <span id="chartTooltipValue" class="tip-value"></span>
+  </div>
+
+  <script>
+    const DATA_DIR = 'report_data';
+    /**
+     * @typedef {{day: string, diamonds: number, income: number, components: ComponentDay[]}} ReportDay
+     * @typedef {{day: string, diamonds: number, income: number}} ComponentDay
+     * @typedef {{name: string, total_diamonds: number, total_income: number, daily: ComponentDay[]}} ReportComponent
+     * @typedef {{total_diamond: number, income_diamond: number, subsidy_diamond: number, total_income_diamond: number, income_before_tax: number, income_real: number}} ReportSummary
+     * @typedef {{account: string, generated_at: string, month: string, summary: ReportSummary, days: ReportDay[], components: ReportComponent[]}} ReportPayload
+     * @typedef {{account: string, months: {month: string, file: string}[]}} AccountIndex
+     * @typedef {{getFileHandle: function(string): Promise<any>, getDirectoryHandle: function(string): Promise<LocalDirectoryHandle>}} LocalDirectoryHandle
+     * @typedef {{showDirectoryPicker: function(): Promise<LocalDirectoryHandle>}} PickerWindow
+     */
+    /** @type {ReportPayload | null} */
+    let reportData = null;
+    /** @type {AccountIndex[]} */
+    let reportIndex = [];
+    /** @type {LocalDirectoryHandle | null} */
+    let dataDirectoryHandle = null;
+    /** @type {Map<string, File> | null} */
+    let dataFileMap = null;
+
+    const activeMonthLabel = document.getElementById('activeMonthLabel');
+    const chooseDataDirBtn = document.getElementById('chooseDataDir');
+    const dataDirInput = document.getElementById('dataDirInput');
+    const accountSelect = document.getElementById('accountSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const reportRoot = document.getElementById('reportRoot');
+    const panel = document.getElementById('detailPanel');
+    const overlay = document.getElementById('panelOverlay');
+    const closePanelBtn = document.getElementById('closePanel');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailSubtitle = document.getElementById('detailSubtitle');
+    const detailChart = document.getElementById('detailChart');
+    const detailTableWrap = document.getElementById('detailTableWrap');
+    const tooltip = document.getElementById('chartTooltip');
+    const tooltipLabel = document.getElementById('chartTooltipLabel');
+    const tooltipValue = document.getElementById('chartTooltipValue');
+    let activePoint = null;
+
+    dataDirInput.setAttribute('webkitdirectory', '');
+
+    function formatNumber(value) {
+      return Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function openPanel() {
+      panel.classList.add('open');
+      overlay.classList.add('open');
+      panel.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      overlay.classList.remove('open');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+
+    function setActivePoint(point) {
+      if (activePoint === point) return;
+      if (activePoint) {
+        activePoint.classList.remove('is-active');
+      }
+      activePoint = point;
+      if (activePoint) {
+        activePoint.classList.add('is-active');
+      }
+    }
+
+    function showTooltip(label, value, clientX, clientY) {
+      tooltipLabel.textContent = label;
+      tooltipValue.textContent = value;
+      tooltip.classList.add('show');
+      tooltip.setAttribute('aria-hidden', 'false');
+      const x = Math.min(clientX + 14, window.innerWidth - tooltip.offsetWidth - 12);
+      const y = Math.max(clientY - tooltip.offsetHeight - 16, 12);
+      tooltip.style.left = `${x}px`;
+      tooltip.style.top = `${y}px`;
+    }
+
+    function hideTooltip() {
+      tooltip.classList.remove('show');
+      tooltip.setAttribute('aria-hidden', 'true');
+      if (activePoint) {
+        activePoint.classList.remove('is-active');
+        activePoint = null;
+      }
+    }
+
+    function buildChart(data) {
+      if (!data.length) {
+        return '<div class="empty-state">没有可展示的数据</div>';
+      }
+      const labels = data.map(item => item.day);
+      const values = data.map(item => Number(item.income || 0));
+      const width = 1040;
+      const height = 320;
+      const paddingLeft = 56;
+      const paddingRight = 18;
+      const paddingTop = 22;
+      const paddingBottom = 54;
+      const maxValue = Math.max(...values, 1);
+      const minValue = Math.min(...values, 0);
+      const range = maxValue - minValue || (maxValue || 1);
+      const plotWidth = width - paddingLeft - paddingRight;
+      const plotHeight = height - paddingTop - paddingBottom;
+      const stepX = plotWidth / Math.max(values.length - 1, 1);
+
+      const points = values.map((value, index) => {
+        const x = paddingLeft + stepX * index;
+        const y = paddingTop + plotHeight - ((value - minValue) / range) * plotHeight;
+        return { x, y, label: labels[index], value };
+      });
+
+      const guides = Array.from({ length: 5 }).map((_, index) => {
+        const ratio = index / 4;
+        const y = paddingTop + plotHeight * ratio;
+        const guideValue = maxValue - range * ratio;
+        return `<line x1="${paddingLeft}" y1="${y}" x2="${width - paddingRight}" y2="${y}" class="guide"></line>
+                <text x="10" y="${y + 4}" class="axis-label">${escapeHtml(formatNumber(guideValue))}</text>`;
+      }).join('');
+
+      const polyline = points.map(point => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+      const area = `${polyline} ${points[points.length - 1].x.toFixed(2)},${height - paddingBottom} ${paddingLeft},${height - paddingBottom}`;
+      const circles = points.map(point => `<circle cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="4.5" class="point" data-label="${escapeHtml(point.label)}" data-value="${escapeHtml(formatNumber(point.value))}"></circle>`).join('');
+      const xLabels = points.map(point => `<text x="${point.x.toFixed(2)}" y="${height - 18}" class="axis-label x-label">${escapeHtml(point.label.slice(5))}</text>`).join('');
+
+      return `<svg viewBox="0 0 ${width} ${height}" class="chart-svg" role="img" aria-label="详情趋势图">
+        <rect x="0" y="0" width="${width}" height="${height}" rx="18" class="chart-bg"></rect>
+        ${guides}
+        <line x1="${paddingLeft}" y1="${height - paddingBottom}" x2="${width - paddingRight}" y2="${height - paddingBottom}" class="axis-line"></line>
+        <polyline points="${area}" class="area-line"></polyline>
+        <polyline points="${polyline}" class="data-line"></polyline>
+        ${circles}
+        ${xLabels}
+      </svg>`;
+    }
+
+    function renderTable(headers, rows) {
+      return `<table><thead><tr>${headers.map(header => `<th class="${header.className || ''}">${header.label}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
+    }
+
+    /**
+     * @param {ReportPayload} data
+     */
+    function renderReport(data) {
+      reportData = data;
+      activeMonthLabel.textContent = `${data.account || ''} / ${data.month || '未命名月份'}`;
+      document.querySelector('.hero-meta strong').textContent = data.account || '3453703057@qq.com';
+      document.querySelectorAll('.hero-meta strong')[1].textContent = data.generated_at || '2026-06-14 17:38:49';
+
+      const summary = data.summary || {};
+      const dailyRows = (data.days || []).map(/** @param {ReportDay} item */ item => `
+        <tr>
+          <td><button type="button" class="table-link action-link" data-action="day" data-day="${escapeHtml(item.day)}">${escapeHtml(item.day)}</button></td>
+          <td class="num">${formatNumber(item.diamonds)}</td>
+          <td class="num">${formatNumber(item.income)}</td>
+        </tr>
+      `).join('');
+      const componentRows = (data.components || [])
+        .slice()
+        .sort((a, b) => Number(b.total_income || 0) - Number(a.total_income || 0))
+        .map(/** @param {ReportComponent} item */ item => `
+          <tr>
+            <td><button type="button" class="table-link action-link" data-action="component" data-component="${escapeHtml(item.name)}">${escapeHtml(item.name)}</button></td>
+            <td class="num">${formatNumber(item.total_diamonds)}</td>
+            <td class="num">${formatNumber(item.total_income)}</td>
+          </tr>
+        `).join('');
+
+      reportRoot.innerHTML = `
+        <section class="report-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">收益统计</p>
+              <h2>${escapeHtml(data.month || '')}</h2>
+            </div>
+            <div class="meta-chip">账号 ${escapeHtml(data.account || '')}</div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><span>原始钻石</span><strong>${formatNumber(summary.total_diamond)}</strong></article>
+            <article class="stat-card"><span>分成钻石</span><strong>${formatNumber(summary.income_diamond)}</strong></article>
+            <article class="stat-card"><span>补贴钻石</span><strong>${formatNumber(summary.subsidy_diamond)}</strong></article>
+            <article class="stat-card"><span>总钻石数</span><strong>${formatNumber(summary.total_income_diamond)}</strong></article>
+            <article class="stat-card"><span>税前收益</span><strong>${formatNumber(summary.income_before_tax)}</strong></article>
+            <article class="stat-card"><span>税后收益</span><strong>${formatNumber(summary.income_real)}</strong></article>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3>每日收益趋势</h3>
+              <span>按天展示税后收益估算</span>
+            </div>
+            ${buildChart(data.days || [])}
+          </div>
+
+          <div class="table-grid">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>每日明细</h3>
+                <span>钻石与税后收益</span>
+              </div>
+              <div class="table-wrap">
+                ${renderTable([
+                  { label: '日期' },
+                  { label: '钻石数', className: 'num' },
+                  { label: '税后收益', className: 'num' }
+                ], [dailyRows || '<tr><td colspan="3">没有数据</td></tr>'])}
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>组件收益排行</h3>
+                <span>按税后收益倒序</span>
+              </div>
+              <div class="table-wrap">
+                ${renderTable([
+                  { label: '组件名称' },
+                  { label: '钻石数', className: 'num' },
+                  { label: '税后收益', className: 'num' }
+                ], [componentRows || '<tr><td colspan="3">没有数据</td></tr>'])}
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+      closePanel();
+    }
+
+    async function loadMonth(file) {
+      activeMonthLabel.textContent = '加载中';
+      reportRoot.innerHTML = '<div class="empty-state">正在加载收益数据</div>';
+      renderReport(await loadJsonFile(file));
+    }
+
+    async function loadJsonFile(file) {
+      if (dataDirectoryHandle) {
+        const fileHandle = await dataDirectoryHandle.getFileHandle(file);
+        return JSON.parse(await (await fileHandle.getFile()).text());
+      }
+
+      if (dataFileMap) {
+        const selectedFile = dataFileMap.get(file);
+        if (!selectedFile) {
+          throw new Error(`选择的文件夹里没有 ${file}`);
+        }
+        return JSON.parse(await selectedFile.text());
+      }
+
+      if (location.protocol !== 'file:') {
+        const response = await fetch(`${DATA_DIR}/${file}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`加载 ${file} 失败`);
+        }
+        return response.json();
+      }
+
+      throw new Error('请先选择 report_data 文件夹');
+    }
+
+    async function getReportDataHandle(handle) {
+      try {
+        await handle.getFileHandle('index.json');
+        return handle;
+      } catch (error) {
+        try {
+          const nested = await handle.getDirectoryHandle(DATA_DIR);
+          await nested.getFileHandle('index.json');
+          return nested;
+        } catch (nestedError) {
+          throw new Error('选择的文件夹里没有 index.json，请选择 report_data 文件夹');
+        }
+      }
+    }
+
+    function loadIndex(indexData) {
+      reportIndex = Array.isArray(indexData.accounts) ? indexData.accounts : [];
+      if (!reportIndex.length) {
+        reportRoot.innerHTML = '<div class="empty-state">report_data 目录下还没有月度 JSON</div>';
+        activeMonthLabel.textContent = '无数据';
+        return;
+      }
+      accountSelect.innerHTML = reportIndex.map(item => `<option value="${escapeHtml(item.account)}">${escapeHtml(item.account)}</option>`).join('');
+      selectAccount(reportIndex[0].account).catch(error => {
+        activeMonthLabel.textContent = '加载失败';
+        reportRoot.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+      });
+    }
+
+    function showChooseDataMessage() {
+      activeMonthLabel.textContent = '等待选择数据';
+      reportRoot.innerHTML = '<div class="empty-state">请点击右上角“选择 report_data 文件夹”，读取本地 JSON 后查看账户和月份。</div>';
+    }
+
+    async function chooseDataDirectory() {
+      dataDirectoryHandle = null;
+      dataFileMap = null;
+      const pickerWindow = /** @type {Window & {showDirectoryPicker?: function(): Promise<LocalDirectoryHandle>}} */ (window);
+      if (pickerWindow.showDirectoryPicker) {
+        try {
+          dataDirectoryHandle = await getReportDataHandle(await pickerWindow.showDirectoryPicker());
+          chooseDataDirBtn.textContent = '已选择 report_data';
+          loadIndex(await loadJsonFile('index.json'));
+          return;
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            return;
+          }
+          dataDirectoryHandle = null;
+        }
+      }
+      dataDirInput.click();
+    }
+
+    async function initReport() {
+      if (location.protocol === 'file:') {
+        showChooseDataMessage();
+        return;
+      }
+      try {
+        loadIndex(await loadJsonFile('index.json'));
+      } catch (error) {
+        showChooseDataMessage();
+      }
+    }
+
+    async function selectAccount(account) {
+      const accountData = reportIndex.find(item => item.account === account);
+      const months = accountData?.months || [];
+      if (!months.length) {
+        monthSelect.innerHTML = '';
+        activeMonthLabel.textContent = account;
+        reportRoot.innerHTML = '<div class="empty-state">当前账户没有月度数据</div>';
+        return;
+      }
+      monthSelect.innerHTML = months.map(item => `<option value="${escapeHtml(item.file)}">${escapeHtml(item.month)}</option>`).join('');
+      await loadMonth(months[0].file);
+    }
+
+    function showDayDetail(day) {
+      const dayData = reportData?.days.find(item => item.day === day);
+      if (!dayData) return;
+      detailTitle.textContent = `${day} 组件收益明细`;
+      detailSubtitle.textContent = `${reportData.month} 当天组件排行`;
+      detailChart.innerHTML = '';
+      const rows = dayData.components.map(item => `<tr><td>${escapeHtml(item.name)}</td><td class="num">${formatNumber(item.diamonds)}</td><td class="num">${formatNumber(item.income)}</td></tr>`);
+      detailTableWrap.innerHTML = renderTable([
+        { label: '组件名称' },
+        { label: '钻石数', className: 'num' },
+        { label: '税后收益', className: 'num' }
+      ], rows);
+      openPanel();
+    }
+
+    function showComponentDetail(componentName) {
+      const componentData = reportData?.components.find(item => item.name === componentName);
+      if (!componentData) return;
+      detailTitle.textContent = componentName;
+      detailSubtitle.textContent = `${reportData.month} 每日收益趋势`;
+      detailChart.innerHTML = buildChart(componentData.daily);
+      const rows = componentData.daily.map(item => `<tr><td>${escapeHtml(item.day)}</td><td class="num">${formatNumber(item.diamonds)}</td><td class="num">${formatNumber(item.income)}</td></tr>`);
+      detailTableWrap.innerHTML = renderTable([
+        { label: '日期' },
+        { label: '钻石数', className: 'num' },
+        { label: '税后收益', className: 'num' }
+      ], rows);
+      openPanel();
+    }
+
+    document.addEventListener('click', event => {
+      const trigger = event.target.closest('.action-link');
+      if (trigger) {
+        if (trigger.dataset.action === 'day') {
+          showDayDetail(trigger.dataset.day);
+        } else if (trigger.dataset.action === 'component') {
+          showComponentDetail(trigger.dataset.component);
+        }
+        return;
+      }
+      if (event.target === overlay || event.target === closePanelBtn) {
+        closePanel();
+      }
+    });
+
+    monthSelect.addEventListener('change', event => {
+      loadMonth(event.target.value).catch(error => {
+        activeMonthLabel.textContent = '加载失败';
+        reportRoot.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+      });
+    });
+
+    accountSelect.addEventListener('change', event => {
+      selectAccount(event.target.value).catch(error => {
+        activeMonthLabel.textContent = '加载失败';
+        reportRoot.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+      });
+    });
+
+    chooseDataDirBtn.addEventListener('click', () => {
+      chooseDataDirectory().catch(error => {
+        activeMonthLabel.textContent = '加载失败';
+        reportRoot.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+      });
+    });
+
+    dataDirInput.addEventListener('change', event => {
+      const files = Array.from(event.target.files || []);
+      dataFileMap = new Map();
+      files.forEach(file => dataFileMap.set(file.name, file));
+      dataDirectoryHandle = null;
+      if (!dataFileMap.has('index.json')) {
+        activeMonthLabel.textContent = '加载失败';
+        reportRoot.innerHTML = '<div class="empty-state">选择的文件夹里没有 index.json，请选择 report_data 文件夹。</div>';
+        return;
+      }
+      chooseDataDirBtn.textContent = '已选择 report_data';
+      loadJsonFile('index.json')
+        .then(loadIndex)
+        .catch(error => {
+          activeMonthLabel.textContent = '加载失败';
+          reportRoot.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+        });
+    });
+
+    document.addEventListener('mouseover', event => {
+      const point = event.target.closest('.point');
+      if (!point) {
+        return;
+      }
+      setActivePoint(point);
+      showTooltip(point.dataset.label || '', point.dataset.value || '', event.clientX, event.clientY);
+    });
+
+    document.addEventListener('mousemove', event => {
+      if (!activePoint) return;
+      showTooltip(activePoint.dataset.label || '', activePoint.dataset.value || '', event.clientX, event.clientY);
+    });
+
+    document.addEventListener('mouseout', event => {
+      const point = event.target.closest('.point');
+      if (!point) return;
+      if (event.relatedTarget && event.relatedTarget.closest && event.relatedTarget.closest('.point') === point) {
+        return;
+      }
+      hideTooltip();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closePanel();
+      }
+    });
+
+    initReport();
+  </script>
+</body>
+</html>
