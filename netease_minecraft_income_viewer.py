@@ -92,24 +92,31 @@ def prompt_month_range():
     raise ValueError("无效查询类型: {}".format(query_type))
 
 
-def prompt_account():
+def prompt_accounts():
     if not ACCOUNTS:
         raise ValueError("accounts_config.py 中没有配置账号")
 
     print("请选择账号:")
-    for index, account_info in enumerate(ACCOUNTS, start=1):
+    print("0. All accounts")
+    for index, account_info in enumerate(ACCOUNTS, start = 1):
         print("{}. {}".format(index, account_info["account"]))
 
     account_no = input("请输入账号序号: ").strip()
     if not account_no.isdigit():
         raise ValueError("账号序号必须是数字: {}".format(account_no))
 
+    if account_no == "0":
+        return [
+            (account_info["account"], account_info["password"])
+            for account_info in ACCOUNTS
+        ]
+
     account_index = int(account_no) - 1
     if account_index < 0 or account_index >= len(ACCOUNTS):
         raise ValueError("无效账号序号: {}".format(account_no))
 
     account_info = ACCOUNTS[account_index]
-    return account_info["account"], account_info["password"]
+    return [(account_info["account"], account_info["password"])]
 
 
 def parse_pre_json(html):
@@ -120,7 +127,7 @@ def parse_pre_json(html):
     return json.loads(pre_nodes[0].text)
 
 
-def visit_json(browser, url, retry=5, sleep_seconds=1):
+def visit_json(browser, url, retry = 5, sleep_seconds = 1):
     last_error = None
     for _ in range(retry):
         try:
@@ -132,7 +139,7 @@ def visit_json(browser, url, retry=5, sleep_seconds=1):
     raise RuntimeError("请求失败: {}\n{}".format(url, last_error))
 
 
-def wait_for_any_element(driver, selectors, timeout=20):
+def wait_for_any_element(driver, selectors, timeout = 20):
     end_time = time.time() + timeout
 
     while time.time() < end_time:
@@ -160,7 +167,7 @@ def has_clause_error(driver):
     return False
 
 
-def click_login_clause(driver, timeout=8):
+def click_login_clause(driver, timeout = 8):
     end_time = time.time() + timeout
     precise_selectors = [
         (By.CLASS_NAME, "j-mail-clause-checkbox"),
@@ -224,7 +231,8 @@ def click_login_clause(driver, timeout=8):
                     return True
                 except Exception:
                     try:
-                        ActionChains(driver).move_to_element_with_offset(element, 14, element.size["height"] / 2).click().perform()
+                        ActionChains(driver).move_to_element_with_offset(element, 14,
+                                                                         element.size["height"] / 2).click().perform()
                         time.sleep(0.2)
                         return True
                     except Exception:
@@ -233,7 +241,7 @@ def click_login_clause(driver, timeout=8):
     return False
 
 
-def switch_to_login_frame(browser, timeout=20):
+def switch_to_login_frame(browser, timeout = 20):
     end_time = time.time() + timeout
     selectors = [
         (By.NAME, "email"),
@@ -294,7 +302,7 @@ def has_login_form(browser):
     return False
 
 
-def wait_for_login_success(browser, timeout=20):
+def wait_for_login_success(browser, timeout = 20):
     end_time = time.time() + timeout
     while time.time() < end_time:
         browser.driver.switch_to.default_content()
@@ -314,13 +322,13 @@ def login(browser, account, password):
         switch_to_login_frame(browser)
     except TimeoutError:
         browser.driver.switch_to.default_content()
-        if wait_for_login_success(browser, timeout=3):
+        if wait_for_login_success(browser, timeout = 3):
             time.sleep(1)
             return
         print("未自动找到登录表单。")
         print("如果页面出现验证码、二维码、二次确认或页面结构变化，请在浏览器窗口手动完成登录后回到终端。")
         input("完成登录后按回车继续...")
-        if not wait_for_login_success(browser, timeout=10):
+        if not wait_for_login_success(browser, timeout = 10):
             raise RuntimeError("登录未完成：请确认浏览器已完成登录并跳转出登录页。")
         time.sleep(1)
         return
@@ -346,7 +354,7 @@ def login(browser, account, password):
     password_input.clear()
     password_input.send_keys(password)
 
-    click_login_clause(browser.driver, timeout=6)
+    click_login_clause(browser.driver, timeout = 6)
 
     login_button = wait_for_any_element(
         browser.driver,
@@ -372,20 +380,20 @@ def login(browser, account, password):
         submit_login()
         time.sleep(0.8)
         if has_clause_error(browser.driver):
-            click_login_clause(browser.driver, timeout=2)
+            click_login_clause(browser.driver, timeout = 2)
             submit_login()
     except Exception:
         submit_login()
 
     browser.driver.switch_to.default_content()
-    if wait_for_login_success(browser, timeout=15):
+    if wait_for_login_success(browser, timeout = 15):
         time.sleep(1)
         return
 
     print("自动登录后页面仍停留在登录页。")
     print("如果页面出现验证码、二次确认或未自动跳转，请在浏览器窗口手动完成后回到终端。")
     input("完成登录后按回车继续...")
-    if not wait_for_login_success(browser, timeout=5):
+    if not wait_for_login_success(browser, timeout = 5):
         raise RuntimeError("登录未完成：页面仍处于登录态输入页面，请检查账号、验证码或登录页元素是否变化。")
     time.sleep(1)
 
@@ -394,10 +402,10 @@ def build_month_window(year_value, month_value):
     current_day = datetime(year_value, month_value, 1)
     month_start_date = datetime(current_day.year, current_day.month, 1, 0, 0, 0)
     month_end_date = month_start_date + timedelta(
-        days=calendar.monthrange(current_day.year, current_day.month)[1]
+        days = calendar.monthrange(current_day.year, current_day.month)[1]
     )
-    month_start = (month_start_date - timedelta(days=9)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    month_end = (month_end_date - timedelta(days=9)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    month_start = (month_start_date - timedelta(days = 9)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    month_end = (month_end_date - timedelta(days = 9)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     return current_day, month_start, month_end
 
 
@@ -421,9 +429,9 @@ def collect_pe_income(browser, month_start, month_end):
         component_daily_diamond[item_name] = {}
 
         data_url = PE_INCOME_URL.format(
-            item_id=item_id,
-            begin_time=month_start,
-            end_time=month_end,
+            item_id = item_id,
+            begin_time = month_start,
+            end_time = month_end,
         )
         income_response = visit_json(browser, data_url)
         if income_response.get("status") != "ok" or not income_response.get("data"):
@@ -446,7 +454,7 @@ def collect_pe_income(browser, month_start, month_end):
 
             daily_diamond[day] = daily_diamond.get(day, 0.0) + point
             component_daily_diamond[item_name][day] = (
-                component_daily_diamond[item_name].get(day, 0.0) + point
+                    component_daily_diamond[item_name].get(day, 0.0) + point
             )
 
     return total_diamond, daily_diamond, component_total_diamond, component_daily_diamond
@@ -481,7 +489,7 @@ def build_income_summary(total_diamond, daily_diamond, component_total_diamond, 
         tax_after = diamonds / 100 * scale
         if tax_after > 0:
             component_month_income.append((diamonds, tax_after, item_name))
-    component_month_income.sort(key=lambda row: row[1], reverse=True)
+    component_month_income.sort(key = lambda row: row[1], reverse = True)
 
     return {
         "income_diamond": income_diamond,
@@ -533,14 +541,14 @@ def build_day_component_breakdown(component_daily_diamond, component_daily_incom
             day_map.setdefault(day, []).append((component_name, diamonds, income))
 
     for day, rows in day_map.items():
-        rows.sort(key=lambda row: (row[2], row[1], row[0]), reverse=True)
+        rows.sort(key = lambda row: (row[2], row[1], row[0]), reverse = True)
     return day_map
 
 
 def build_report_payload(account, report, generated_at):
     current_day = report["current_day"]
     summary = report["summary"]
-    daily_diamond = OrderedDict(sorted(report["daily_diamond"].items(), key=lambda row: row[0]))
+    daily_diamond = OrderedDict(sorted(report["daily_diamond"].items(), key = lambda row: row[0]))
     component_daily_diamond = report["component_daily_diamond"]
     component_daily_income = summary["component_daily_income"]
     day_component_breakdown = build_day_component_breakdown(component_daily_diamond, component_daily_income)
@@ -591,10 +599,10 @@ def build_report_payload(account, report, generated_at):
                         "diamonds": component_daily_diamond.get(component_name, {}).get(day, 0.0),
                         "income": income,
                     }
-                    for day, income in OrderedDict(sorted(daily_income.items(), key=lambda row: row[0])).items()
+                    for day, income in OrderedDict(sorted(daily_income.items(), key = lambda row: row[0])).items()
                 ],
             }
-            for component_name, daily_income in sorted(component_daily_income.items(), key=lambda row: row[0])
+            for component_name, daily_income in sorted(component_daily_income.items(), key = lambda row: row[0])
         ],
     }
 
@@ -602,16 +610,17 @@ def build_report_payload(account, report, generated_at):
 def save_month_json_files(account, month_reports, output_dir):
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data_dir = output_dir / REPORT_DATA_DIR_NAME
-    data_dir.mkdir(exist_ok=True)
+    data_dir.mkdir(exist_ok = True)
     report_account = get_report_account_name(account)
 
     for report in month_reports:
         payload = build_report_payload(account, report, generated_at)
-        year_month = report["current_day"].strftime("%Y_%#m") if os.name == "nt" else report["current_day"].strftime("%Y_%-m")
+        year_month = report["current_day"].strftime("%Y_%#m") if os.name == "nt" else report["current_day"].strftime(
+            "%Y_%-m")
         data_path = data_dir / "{}_{}.json".format(report_account, year_month)
         data_path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
+            json.dumps(payload, ensure_ascii = False, indent = 2),
+            encoding = "utf-8",
         )
         print("月度 JSON 已生成/替换: {}".format(data_path))
 
@@ -636,19 +645,19 @@ def save_month_json_files(account, month_reports, output_dir):
 
     accounts = []
     for account_name, files in account_map.items():
-        files.sort(key=lambda item: (item["year"], item["month_number"]), reverse=True)
+        files.sort(key = lambda item: (item["year"], item["month_number"]), reverse = True)
         accounts.append(
             {
                 "account": account_name,
                 "months": files,
             }
         )
-    accounts.sort(key=lambda item: item["account"])
+    accounts.sort(key = lambda item: item["account"])
 
     index_path = data_dir / "index.json"
     index_path.write_text(
-        json.dumps({"accounts": accounts}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+        json.dumps({"accounts": accounts}, ensure_ascii = False, indent = 2),
+        encoding = "utf-8",
     )
     print("JSON 索引已更新: {}".format(index_path))
 
@@ -656,11 +665,19 @@ def save_month_json_files(account, month_reports, output_dir):
 def save_and_open_report(account, month_reports):
     output_dir = Path(__file__).resolve().parent
     save_month_json_files(account, month_reports, output_dir)
-    report_path = output_dir / "收益报告.html"
+    report_path = output_dir / "\u6536\u76ca\u62a5\u544a.html"
     if not report_path.exists():
         raise FileNotFoundError("未找到 HTML 报告页面: {}".format(report_path))
     os.startfile(str(report_path))
     print("请在打开的页面中点击“选择 report_data 文件夹”读取本地 JSON。")
+
+
+def open_report_page(output_dir):
+    report_path = output_dir / "\u6536\u76ca\u62a5\u544a.html"
+    if not report_path.exists():
+        raise FileNotFoundError("HTML report page not found: {}".format(report_path))
+    os.startfile(str(report_path))
+    print("Please select the report_data folder in the opened report page to load local JSON.")
 
 
 def plot_income(month_results):
@@ -668,24 +685,22 @@ def plot_income(month_results):
     labels = []
 
     for label, daily_income in month_results:
-        ordered_income = OrderedDict(sorted(daily_income.items(), key=lambda row: row[0]))
+        ordered_income = OrderedDict(sorted(daily_income.items(), key = lambda row: row[0]))
         ax.plot(
             list(ordered_income.keys()),
             list(ordered_income.values()),
-            label=label,
-            color=get_bright_color(),
+            label = label,
+            color = get_bright_color(),
         )
         labels.append(label)
 
     ax.xaxis.set_major_locator(ticker.MultipleLocator(100))
-    plt.legend(labels=labels)
-    plt.xticks(size="small", rotation=50, fontsize=13)
+    plt.legend(labels = labels)
+    plt.xticks(size = "small", rotation = 50, fontsize = 13)
     plt.show()
 
 
-def main():
-    month_range = prompt_month_range()
-    account, password = prompt_account()
+def run_account_report(account, password, month_range, output_dir, label_with_account = False):
     month_results = []
     month_reports = []
 
@@ -707,7 +722,10 @@ def main():
                 component_daily_diamond,
             )
             print_summary(account, current_day, total_diamond, daily_diamond, summary)
-            month_results.append(("{}-{}".format(year_value, month_value), summary["daily_income"]))
+            month_label = current_day.strftime("%Y-%m")
+            if label_with_account:
+                month_label = "{} {}".format(get_report_account_name(account), month_label)
+            month_results.append((month_label, summary["daily_income"]))
             month_reports.append(
                 {
                     "current_day": current_day,
@@ -718,10 +736,33 @@ def main():
                 }
             )
 
-        save_and_open_report(account, month_reports)
-        plot_income(month_results)
     finally:
         browser.quit()
+
+    save_month_json_files(account, month_reports, output_dir)
+    return month_results
+
+
+def main():
+    month_range = prompt_month_range()
+    selected_accounts = prompt_accounts()
+    output_dir = Path(__file__).resolve().parent
+    month_results = []
+    label_with_account = len(selected_accounts) > 1
+
+    for account, password in selected_accounts:
+        month_results.extend(
+            run_account_report(
+                account,
+                password,
+                month_range,
+                output_dir,
+                label_with_account = label_with_account,
+            )
+        )
+
+    open_report_page(output_dir)
+    plot_income(month_results)
 
 
 if __name__ == "__main__":
